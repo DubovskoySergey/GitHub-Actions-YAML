@@ -1,0 +1,65 @@
+# This workflow will do a clean install of node dependencies, build the source code
+# To connect to FTP, you used SamKirkland/FTP-Deploy-Action@4.0.0. The original comments are saved.
+
+name: Node.js CI
+env:
+  FTP_HOST  : host
+  FTP_USER  : user
+  FTP_PASS  : ${{secrets.FTP_PASS}}  
+  FTP_DIR   : dir # example: dist/
+  LOCAL_DIR : dir # example: public_html/
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Node JS
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+    - run: npm ci
+    - run: npm run build --if-present
+    - name: FTP Deploy
+  # You may pin to the exact commit or the version.
+  # uses: SamKirkland/FTP-Deploy-Action@2a4e9b1312ebeb73a1f72b9330c71831c1e4ce01
+      uses: SamKirkland/FTP-Deploy-Action@4.0.0
+      with:
+    # ftp server
+        server: ${{env.FTP_HOST}}
+    # ftp username
+        username: ${{env.FTP_USER}}
+    # ftp password
+        password: ${{secrets.FTP_PASS}}
+    # Server port to connect to (read your web hosts docs)
+        port: 21
+    # protocol to deploy with - ftp, ftps, or ftps-legacy
+  # protocol: # optional
+    # Folder to upload from, must end with trailing slash /
+        local-dir: ${{env.LOCAL_DIR}}
+    # Path to upload to on the server. Must end with trailing slash /
+        server-dir: ${{env.FTP_DIR}}
+    # Path and name of the state file - this file is used to track which files have been deployed
+   #state-name: # optional
+    # Prints which modifications will be made with current config options, but doesnt actually make any changes
+   # dry-run: # optional
+    # Deletes ALL contents of server-dir, even items in excluded with exclude argument
+        dangerous-clean-slate: True
+    # An array of glob patterns, these files will not be included in the publish/delete process
+    #exclude: .git*/*
+
+    - name: Display status from deploy
+      run: echo "${{ steps.deploy.outputs.status }}"
+
+
+
+
+
+
+
